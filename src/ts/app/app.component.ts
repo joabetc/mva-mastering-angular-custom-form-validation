@@ -1,39 +1,24 @@
 import { Component, Directive } from "@angular/core";
-import { FormControl, Validators, NG_VALIDATORS } from "@angular/forms";
+import { FormControl, Validators, NG_VALIDATORS, AbstractControl } from "@angular/forms";
 
-const phoneNumberValidator = (control: FormControl) => {
+import { Books } from "./services/books";
 
-    if (control.value == null || String(control.value).length === 0) {
-        return null;
+const validateBookId = (books: Books) => {
+
+    return (c: AbstractControl) => {
+        if (c.value == null || String(c.value).length === 0) {
+            return Promise.resolve(null);
+        }
+
+        return new Promise((resolve, reject) => {
+            books.getBook(Number(c.value)).subscribe(() => {
+                resolve(null);
+            }, () => {
+                resolve({bookId: true});
+            });
+        })
     }
-
-    const re = new RegExp("^(\\+\\d{1,2}\\s)?\\(?\\d{3}\\)?[\\s.-]?\\d{3}[\\s.-]?\\d{4}$");
-
-    if (!re.test(control.value)) {
-        return {
-            phoneNumber: true,
-        };
-    }
-
-    return null;
-};
-
-const selectors = [
-    "input[type=tel][ngModel]",
-    "input[type=tel][formControl]",
-    "input[type=tel][formControlName]",
-    "[phone-number][ngModel]",
-    "[phone-number][formControl]",
-    "[phone-number][formControlName]",
-];
-
-@Directive({
-    selector: selectors.join(","),
-    providers: [
-        { provide: NG_VALIDATORS, useValue: phoneNumberValidator, multi: true },
-    ],
-})
-export class PhoneNumberValidatorDirective { }
+}
 
 @Component({
     selector: "main",
@@ -42,16 +27,17 @@ export class PhoneNumberValidatorDirective { }
     ],
     template: `
         <div>
-            <label for="phone-number-input">Phone Number:</label>
-            <input type="tel" id="phone-number-input" [(ngModel)]="phoneNumberInput">
+            <label for="book-id-input">Book Id:</label>
+            <input type="tel" id="book-id-input" [formControl]="bookIdInput">
             <span>
-                Phone is not valid.
+                Book Id is not valid.
             </span>
         </div>
     `,
 })
 export class AppComponent {
 
-    public phoneNumberInput = new FormControl("", [phoneNumberValidator, Validators.required]);
+    public bookIdInput = new FormControl("", null, validateBookId(this.books));
 
+    constructor(private books: Books) { }
 }
