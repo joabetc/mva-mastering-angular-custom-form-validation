@@ -1,9 +1,9 @@
 import { Component, Directive } from "@angular/core";
-import { FormControl, Validators, NG_VALIDATORS, AbstractControl } from "@angular/forms";
+import { FormControl, NG_ASYNC_VALIDATORS, AbstractControl } from "@angular/forms";
 
 import { Books } from "./services/books";
 
-const validateBookId = (books: Books) => {
+const validateBookIdFactory = (books: Books) => {
 
     return (c: AbstractControl) => {
         if (c.value == null || String(c.value).length === 0) {
@@ -18,7 +18,15 @@ const validateBookId = (books: Books) => {
             });
         })
     }
-}
+};
+
+@Directive({
+    selector: "[valid-book-id][ngModel]",
+    providers: [
+        { provide: NG_ASYNC_VALIDATORS, useFactory: validateBookIdFactory, multi: true, deps: [ Books ] }
+    ],
+})
+export class BookIdValidatorDirective { }
 
 @Component({
     selector: "main",
@@ -28,16 +36,11 @@ const validateBookId = (books: Books) => {
     template: `
         <div>
             <label for="book-id-input">Book Id:</label>
-            <input type="tel" id="book-id-input" [formControl]="bookIdInput">
+            <input type="tel" id="book-id-input" valid-book-id [(ngModel)]="bookId">
             <span>
                 Book Id is not valid.
             </span>
         </div>
     `,
 })
-export class AppComponent {
-
-    public bookIdInput = new FormControl("", null, validateBookId(this.books));
-
-    constructor(private books: Books) { }
-}
+export class AppComponent { }

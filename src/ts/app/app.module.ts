@@ -5,13 +5,13 @@ import { HttpModule } from "@angular/http";
 
 import { Books } from "./services/books";
 
-import { AppComponent } from "./app.component";
+import { AppComponent, BookIdValidatorDirective } from "./app.component";
 
 import "../../scss/styles.scss";
 
 @NgModule({
     imports: [ BrowserModule, FormsModule, ReactiveFormsModule, HttpModule ],
-    declarations: [ AppComponent ],
+    declarations: [ AppComponent, BookIdValidatorDirective ],
     bootstrap: [ AppComponent ],
     providers: [ Books ]
 })
