@@ -1,5 +1,7 @@
-import { Component, Directive } from "@angular/core";
-import { FormControl, NG_ASYNC_VALIDATORS, AbstractControl } from "@angular/forms";
+import { Component, Directive, forwardRef } from "@angular/core";
+import { FormControl, NG_ASYNC_VALIDATORS, AbstractControl, AsyncValidator } from "@angular/forms";
+
+import { Observable } from "rxjs";
 
 import { Books } from "./services/books";
 
@@ -23,10 +25,25 @@ const validateBookIdFactory = (books: Books) => {
 @Directive({
     selector: "[valid-book-id][ngModel]",
     providers: [
-        { provide: NG_ASYNC_VALIDATORS, useFactory: validateBookIdFactory, multi: true, deps: [ Books ] }
+        { 
+            provide: NG_ASYNC_VALIDATORS, 
+            useExisting: forwardRef(() => BookIdValidatorDirective), 
+            multi: true
+        }
     ],
 })
-export class BookIdValidatorDirective { }
+export class BookIdValidatorDirective implements AsyncValidator {
+
+    private validator: (c: AbstractControl) => Promise<any> | Observable<any>;
+
+    constructor(private books: Books) {
+        this.validator = validateBookIdFactory(this.books);
+    }
+
+    public validate(c: AbstractControl) {
+        return this.validator(c);
+    }
+}
 
 @Component({
     selector: "main",
