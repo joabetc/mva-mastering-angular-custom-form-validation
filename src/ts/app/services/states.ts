@@ -20,5 +20,9 @@ export const states: States = [
     {
         name: "Arizona",
         abbreviation: "AZ",
+    },
+    {
+        name: "Virginia",
+        abbreviation: "VA",
     }
 ]

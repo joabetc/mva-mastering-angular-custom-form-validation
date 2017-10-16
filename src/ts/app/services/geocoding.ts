@@ -7,7 +7,7 @@ import "rxjs";
 @Injectable()
 export class Geocoding {
     
-    private baseURL = "/geocoder/location/onelineaddress";
+    private baseURL = "https://geocoding.geo.census.gov/geocoder/location/onelineaddress";
     private benchmarkParam = "Public_AR_Current";
     private formatParam = "json";
 

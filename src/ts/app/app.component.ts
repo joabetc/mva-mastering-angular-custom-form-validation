@@ -11,12 +11,62 @@ export interface AddressData {
 import { Geocoding } from "./services/geocoding";
 import { STATES, States } from "./services/states";
 
+const validateAddressFactory = (geocoding: Geocoding) => {
+    return (g: FormGroup) => {
+        return new Promise((resolve, reject) => {
+
+            const controls = g.controls;
+            const street = controls.streetInput.value;
+            const city = controls.cityInput.value;
+            const state = controls.stateSelect.value;
+            const zipCode = controls.zipCodeInput.value;
+
+            if (street.length === 0 || city.length === 0 ||
+                state.length === 0 || zipCode.length === 0) {
+                    return Promise.resolve({geocoding: true});
+                }
+            
+            const originalAddress = `${street}, ${city}, ${state}, ${zipCode}`;
+
+            geocoding.geocodeAddress(originalAddress).subscribe((results) => {
+
+                const { addressMatches }: { addressMatches: any[] } = results.results;
+
+                if (addressMatches && addressMatches.length ===1) {
+                    const {matchedAddess} : {matchedAddess: string} = addressMatches[0];
+
+                    if (matchedAddess === originalAddress.toUpperCase()) {
+                        resolve(null);
+                    } else {
+                        resolve({ geocoding: { mismatch: true } });
+                    }
+                } else if (addressMatches.length > 1) {
+                    resolve({ geocoding: { manyMatches: true } });
+                } else {
+                    resolve({ geocoding: { noMatch: true } });
+                }
+
+            }, () => reject({ geocoding: { unknown: true } }));
+
+
+        });
+    };
+};
+
+@Directive({
+    selector: "[geocode-address][ngModelGroup]",
+    providers: [
+        { provide: NG_ASYNC_VALIDATORS, useFactory: validateAddressFactory, multi: true, deps: [Geocoding] },
+    ],
+})
+export class GeocodingValidatorDirective { }
+
 @Component({
     selector: "main",
     styles: [ require("./app.component.scss") ],
     template: `
         <form>
-            <fieldset ngModelGroup="addressGroup">
+            <fieldset ngModelGroup="addressGroup" geocode-address>
                 <legend>Address <span>(Validated)</span></legend>
                 <details class='errors'>
                     <summary>
