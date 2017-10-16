@@ -65,4 +65,36 @@ import { STATES, States } from "./services/states";
         </form>
     `,
 })
-export class AppComponent { }
+export class AppComponent { 
+
+    @ViewChild(NgModelGroup)
+    public addressGroup: NgModelGroup;
+
+    public address: AddressData = {
+        street: "",
+        city: "",
+        state: "",
+        zipCode: "",
+    };
+
+    constructor(
+        @Inject(STATES) private states: States,
+    ) { }
+
+    public getGroupErrors(fg: NgModelGroup | FormGroup) {
+
+        if (!fg) { return []; }
+
+        if (fg instanceof NgModelGroup && !fg.control) {
+            return [];
+        }
+
+        const controls = fg instanceof NgModelGroup ? fg.control.controls : fg.controls;
+
+        return [].concat(Object.keys(controls)
+            .filter((controlKey) => controls[controlKey].errors)
+            .map((controlKey) => [controlKey, Object.keys(controls[controlKey].errors)])
+            .map(([controlKey, errorKeys]: [string, string[]]) =>
+                errorKeys.map((errorKey) => controlKey + ":" + errorKey)));
+    }
+ }
